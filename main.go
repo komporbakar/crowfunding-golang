@@ -24,6 +24,19 @@ func main() {
 	userService := user.NewService(userRepository)
 	authService := auth.NewService()
 
+	t, err := authService.ValidateToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDM5NTYxNjEsInVzZXJfaWQiOjIzfQ._zextikNJj5l_8inYCdPnyV5Ajnn5B_4kcgxtcQgHRk")
+
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("ERROR")
+	}
+	if t.Valid {
+		fmt.Println("Valid")
+		fmt.Println(t)
+	} else {
+		fmt.Println("Not Valid")
+	}
+
 	userHandler := handler.NewUserHandler(userService, authService)
 
 	router := gin.Default()
