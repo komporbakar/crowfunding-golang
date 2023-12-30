@@ -2,6 +2,7 @@ package main
 
 import (
 	"bwastartup-backend/auth"
+	"bwastartup-backend/campaign"
 	"bwastartup-backend/handler"
 	"bwastartup-backend/helper"
 	"bwastartup-backend/user"
@@ -25,31 +26,26 @@ func main() {
 	fmt.Println("Connection Success")
 
 	userRepository := user.NewRepository(db)
+	campaignRepository := campaign.NewRepository(db)
+
 	userService := user.NewService(userRepository)
+	campaignService := campaign.NewService(campaignRepository)
 	authService := auth.NewService()
 
-	t, err := authService.ValidateToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDM5NTYxNjEsInVzZXJfaWQiOjIzfQ._zextikNJj5l_8inYCdPnyV5Ajnn5B_4kcgxtcQgHRk")
-
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println("ERROR")
-	}
-	if t.Valid {
-		fmt.Println("Valid")
-		fmt.Println(t)
-	} else {
-		fmt.Println("Not Valid")
-	}
-
 	userHandler := handler.NewUserHandler(userService, authService)
+	campaignHandler := handler.NewCampaignHandler(campaignService)
 
 	router := gin.Default()
 	api := router.Group("/api/v1")
 
+	// User
 	api.POST("/signup", userHandler.RegisterUser)
 	api.POST("/signin", userHandler.LoginUser)
 	api.POST("/email_checkers", userHandler.CheckEmailAvailability)
 	api.POST("/avatars", authMiddleware(authService, userService), userHandler.UploadAvatar)
+
+	// Campaign
+	api.GET("/campaigns", campaignHandler.GetCampaigns)
 
 	router.Run()
 
