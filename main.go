@@ -3,10 +3,14 @@ package main
 import (
 	"bwastartup-backend/auth"
 	"bwastartup-backend/handler"
+	"bwastartup-backend/helper"
 	"bwastartup-backend/user"
 	"fmt"
+	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -45,8 +49,55 @@ func main() {
 	api.POST("/signup", userHandler.RegisterUser)
 	api.POST("/signin", userHandler.LoginUser)
 	api.POST("/email_checkers", userHandler.CheckEmailAvailability)
-	api.POST("/avatars", userHandler.UploadAvatar)
+	api.POST("/avatars", authMiddleware(authService, userService), userHandler.UploadAvatar)
 
 	router.Run()
 
+}
+
+func authMiddleware(authService auth.Service, userService user.Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+
+		if !strings.Contains(authHeader, "Bearer") {
+			response := helper.ApiResponse("Unauthorized", http.StatusUnauthorized, "failed", nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+		fmt.Println(authHeader)
+
+		// Bearer Token
+		var tokenString string
+		splitToken := strings.Split(authHeader, " ")
+		if len(splitToken) == 2 {
+			tokenString = splitToken[1]
+		}
+
+		token, err := authService.ValidateToken(tokenString)
+		if err != nil {
+			response := helper.ApiResponse("Unauthorized", http.StatusUnauthorized, "failed", nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+
+		claim, ok := token.Claims.(jwt.MapClaims)
+		if !ok || !token.Valid {
+			response := helper.ApiResponse("Unauthorized", http.StatusUnauthorized, "failed", nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+
+		userId := int(claim["user_id"].(float64))
+
+		user, err := userService.GetUserById(userId)
+		if err != nil {
+			response := helper.ApiResponse("Unauthorized", http.StatusUnauthorized, "failed", nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+		fmt.Println("user :", user)
+
+		c.Set("currentUser", user)
+
+	}
 }
