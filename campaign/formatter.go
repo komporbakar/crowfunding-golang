@@ -8,6 +8,7 @@ type CampaignResponse struct {
 	ImageUrl         string `json:"image_url"`
 	GoalAmount       int    `json:"goal_amount"`
 	CurrentAmount    int    `json:"current_amount"`
+	Slug             string `json:"slug"`
 }
 
 func ResponseCampaign(campaign Campaign) CampaignResponse {
@@ -18,6 +19,7 @@ func ResponseCampaign(campaign Campaign) CampaignResponse {
 	campaignResponse.ShortDescription = campaign.ShortDescription
 	campaignResponse.GoalAmount = campaign.GoalAmount
 	campaignResponse.CurrentAmount = campaign.CurrentAmount
+	campaignResponse.Slug = campaign.Slug
 
 	campaignResponse.ImageUrl = ""
 
