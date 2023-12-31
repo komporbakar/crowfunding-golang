@@ -18,6 +18,8 @@ type repository struct {
 	db *gorm.DB
 }
 
+// GetByCampaignId impleme
+
 func NewRepository(db *gorm.DB) *repository {
 	return &repository{db}
 }
