@@ -3,6 +3,7 @@ package handler
 import (
 	"bwastartup-backend/campaign"
 	"bwastartup-backend/helper"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -30,4 +31,26 @@ func (h *campaignHandler) GetCampaigns(c *gin.Context) {
 	response := helper.ApiResponse("Success to get campaigns", http.StatusOK, "success", campaign.ResponseCampaigns(campaigns))
 	c.JSON(http.StatusOK, response)
 
+}
+
+func (h *campaignHandler) GetCampaign(c *gin.Context) {
+	var input campaign.GetCampaignDetailInput
+
+	err := c.ShouldBindUri(&input)
+	if err != nil {
+		response := helper.ApiResponse("Failed to get detail campaign", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	fmt.Println(input)
+
+	campaignDetail, err := h.service.GetCampaignById(input)
+	if err != nil {
+		response := helper.ApiResponse("Failed to get detail campaign", http.StatusNotFound, "error", nil)
+		c.JSON(http.StatusNotFound, response)
+		return
+	}
+
+	response := helper.ApiResponse("Success to get detail campaign", http.StatusOK, "success", campaign.ResponseDetailCampaign(campaignDetail))
+	c.JSON(http.StatusOK, response)
 }
