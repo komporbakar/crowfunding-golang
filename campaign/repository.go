@@ -8,7 +8,7 @@ type Repository interface {
 	FindAll() ([]Campaign, error)
 	FindByUserId(userId int) ([]Campaign, error)
 	FindById(Id int) (Campaign, error)
-	// CreateCampaign(campaign Campaign) (Campaign, error)
+	CreateCampaign(campaign Campaign) (Campaign, error)
 	// Update(Id Campaign) (Campaign, error)
 }
 
@@ -46,5 +46,13 @@ func (r *repository) FindById(Id int) (Campaign, error) {
 		return campaign, err
 	}
 
+	return campaign, nil
+}
+
+func (r *repository) CreateCampaign(campaign Campaign) (Campaign, error) {
+	err := r.db.Create(&campaign).Error
+	if err != nil {
+		return campaign, err
+	}
 	return campaign, nil
 }

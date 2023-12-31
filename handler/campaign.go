@@ -3,6 +3,7 @@ package handler
 import (
 	"bwastartup-backend/campaign"
 	"bwastartup-backend/helper"
+	"bwastartup-backend/user"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -53,4 +54,30 @@ func (h *campaignHandler) GetCampaign(c *gin.Context) {
 
 	response := helper.ApiResponse("Success to get detail campaign", http.StatusOK, "success", campaign.ResponseDetailCampaign(campaignDetail))
 	c.JSON(http.StatusOK, response)
+}
+
+func (h *campaignHandler) CreateCampaign(ctx *gin.Context) {
+	var input campaign.CreateCampaignInput
+	err := ctx.ShouldBindJSON(&input)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		fmt.Println(errors)
+		errorMessage := gin.H{"errors": errors}
+		response := helper.ApiResponse("Failed to create campaign", http.StatusUnprocessableEntity, "error", errorMessage)
+		ctx.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	currentUser := ctx.MustGet("currentUser").(user.User)
+	input.User = currentUser
+
+	newCampaign, err := h.service.CreateCampaign(input)
+	if err != nil {
+		response := helper.ApiResponse("Failed to create campaign", http.StatusBadRequest, "error", nil)
+		ctx.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.ApiResponse("Success to create campaign", http.StatusOK, "success", campaign.ResponseCampaign(newCampaign))
+	ctx.JSON(http.StatusOK, response)
 }
